@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from multiprocessing import Process
-import multiprocessing
 import os
 import time
 
@@ -20,6 +19,8 @@ import torch.nn as nn
 from torch.distributions.normal import Normal
 
 import gymnasium as gym
+
+# import cProfile, pstats
 
 
 class Policy_Network(nn.Module):
@@ -121,6 +122,9 @@ class REINFORCE:
         Returns:
             action: Action to be performed
         """
+
+        # Tensor can be created for specific device, however it has to be transferred to cpu 
+        # at end of function, so no real speedup results
         state = torch.tensor(np.array([state]), device = self.device, dtype=torch.float32)
         action_means, action_stddevs = self.net(state)
 
@@ -288,9 +292,9 @@ def main():
     # episodes = np.array([1e4, 1e4, 1e4, 1e4, 1e4])
     lr = np.array([1e-4 ])
     gamma = np.array([0.99])
-    episodes = np.array([5e3])
+    episodes = np.array([1e3])
     export = False
-    use_mps = True    # metal acceleration (mac silicon)
+    use_mps = False    # metal acceleration (mac silicon) (actually slower than cpu due to the nature of the algorithm)
 
     hyperparameters = np.array(([lr],[gamma], [episodes])).T
     procs = []
@@ -307,4 +311,9 @@ def main():
         proc.join()
 
 if __name__ == '__main__':
-    main()  
+    # profiler = cProfile.Profile()
+    # profiler.enable()
+    main()
+    # profiler.disable()
+    # stats = pstats.Stats(profiler).sort_stats('cumtime')
+    # stats.print_stats()

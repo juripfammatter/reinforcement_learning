@@ -85,7 +85,7 @@ class Policy_Network(nn.Module):
 class REINFORCE:
     """REINFORCE algorithm."""
 
-    def __init__(self, obs_space_dims: int, action_space_dims: int, params):
+    def __init__(self, obs_space_dims: int, action_space_dims: int, params, use_mps = False):
         """Initializes an agent that learns a policy via REINFORCE algorithm [1]
         to solve the task at hand (Inverted Pendulum v4).
 
@@ -102,7 +102,14 @@ class REINFORCE:
         self.probs = []  # Stores probability values of the sampled action
         self.rewards = []  # Stores the corresponding rewards
 
-        self.net = Policy_Network(obs_space_dims, action_space_dims)
+        if use_mps and torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+            print("metal acceleration enabled")
+        else:
+            self.device = torch.device("cpu")
+
+        self.net = Policy_Network(obs_space_dims, action_space_dims).to(self.device)
+
         self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=self.learning_rate)
 
     def sample_action(self, state: np.ndarray) -> float:
@@ -114,7 +121,7 @@ class REINFORCE:
         Returns:
             action: Action to be performed
         """
-        state = torch.tensor(np.array([state]))
+        state = torch.tensor(np.array([state]), device = self.device, dtype=torch.float32)
         action_means, action_stddevs = self.net(state)
 
         # create a normal distribution from the predicted
@@ -123,7 +130,7 @@ class REINFORCE:
         action = distrib.sample()                                                           # action is chosen from normal distribution resulting from neural net
         prob = distrib.log_prob(action)
 
-        action = action.numpy()
+        action = action.cpu().numpy()
 
         self.probs.append(prob)
 
@@ -139,12 +146,12 @@ class REINFORCE:
             running_g = R + self.gamma * running_g
             gs.insert(0, running_g)
 
-        deltas = torch.tensor(gs)
+        deltas = torch.tensor(gs, dtype=torch.float32, device=self.device)
 
         loss = 0
         # minimize -1 * prob * reward obtained
         for log_prob, delta in zip(self.probs, deltas):
-            loss += log_prob.mean() * delta * (-1)
+            loss += log_prob.mean().mul(delta).mul(-1)
 
         # Update the policy network
         self.optimizer.zero_grad()
@@ -156,7 +163,7 @@ class REINFORCE:
         self.rewards = []
 
 
-def run_dqn(proc, params, export = False):
+def run_dqn(proc, params, export = False, use_mps = False):
     """ Status Info """
     time.sleep(proc/10) # make sure outputs are seperate
     print("Process ",proc,"param:", params, "PID:" ,os.getpid())
@@ -179,7 +186,7 @@ def run_dqn(proc, params, export = False):
         np.random.seed(seed)
 
         # Reinitialize agent every seed
-        agent = REINFORCE(obs_space_dims, action_space_dims, params=params)
+        agent = REINFORCE(obs_space_dims, action_space_dims, params=params, use_mps = use_mps)
         reward_over_episodes = []
 
         for episode in range(total_num_episodes):
@@ -281,8 +288,9 @@ def main():
     # episodes = np.array([1e4, 1e4, 1e4, 1e4, 1e4])
     lr = np.array([1e-4 ])
     gamma = np.array([0.99])
-    episodes = np.array([1e4])
-    export = True
+    episodes = np.array([5e3])
+    export = False
+    use_mps = True    # metal acceleration (mac silicon)
 
     hyperparameters = np.array(([lr],[gamma], [episodes])).T
     procs = []
@@ -290,7 +298,7 @@ def main():
     # start processes
     for index, param in enumerate(hyperparameters):
         param = param.flatten()
-        proc = Process(target= run_dqn, args=(index,param,export,))
+        proc = Process(target= run_dqn, args=(index,param,export,use_mps,))
         procs.append(proc)
         proc.start()
 

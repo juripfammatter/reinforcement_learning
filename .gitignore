@@ -1,6 +1,8 @@
-videos/*
+# Various cache files and helpers
 .DS_Store
 __pycache__
 .ipynb_checkpoints
-.DS_Store
 .idea
+
+# saved datasets
+*/data

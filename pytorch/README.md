@@ -7,3 +7,4 @@
 
 ## TODO
  - [ ] Setup JSON file argument parsing
+ - [ ] Unit tests

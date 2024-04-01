@@ -86,6 +86,7 @@ def test(dataloader, model, loss_fn):
     correct /= size
     print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
+
 """ Running the training and test loops """
 
 epochs = 40

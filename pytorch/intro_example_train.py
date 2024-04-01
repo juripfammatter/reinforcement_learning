@@ -73,9 +73,9 @@ def setup_model() -> (NeuralNetwork, str):
 
 
 def save_model(model: NeuralNetwork, config: dict) -> None:
-    model_filename = config["model_filename"]
-    torch.save(model, model_filename)
-    print(f"Model saved to {model_filename}")
+    model_weights_filename = config["model_weights_filename"]
+    torch.save(model.state_dict(), model_weights_filename)
+    print(f"Model saved to {model_weights_filename}")
 
 
 """ training/testing """

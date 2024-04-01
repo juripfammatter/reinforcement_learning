@@ -35,8 +35,10 @@ def setup_model(config: dict) -> (NeuralNetwork, str):
         else "cpu"
     )
     print(f"Using {best_available_device} device")
-    model_filename = config["model_filename"]
-    model = torch.load(model_filename)
+    model_weights_filename = config["model_weights_filename"]
+    # model = torch.load(model_filename)
+    model = NeuralNetwork().to(best_available_device)
+    model.load_state_dict(torch.load(model_weights_filename))
     print(model)
 
     return model, best_available_device

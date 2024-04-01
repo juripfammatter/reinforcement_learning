@@ -10,7 +10,7 @@ from torchvision.transforms import ToTensor
 from neural_networks.intro_example_NN import NeuralNetwork
 
 
-def load_config():
+def load_config() -> dict:
     """ Import JSON file and check existence"""
     config_file = sys.argv[1]
     if os.path.exists(config_file):
@@ -24,7 +24,7 @@ def load_config():
     return config
 
 
-def load_dataset(config):
+def load_dataset(config: dict) -> (any, any):
     """ Dataset """
     training_data = datasets.FashionMNIST(
         root="data",
@@ -54,7 +54,7 @@ def load_dataset(config):
     return train_dataloader, test_dataloader
 
 
-def setup_model():
+def setup_model() -> (NeuralNetwork, str):
     """ Model """
     # Get cpu, gpu or mps device for training.
     best_available_device = (
@@ -72,7 +72,7 @@ def setup_model():
     return model, best_available_device
 
 
-def save_model(model, config):
+def save_model(model: NeuralNetwork, config: dict) -> None:
     model_filename = config["model_filename"]
     torch.save(model, model_filename)
     print(f"Model saved to {model_filename}")
@@ -81,7 +81,8 @@ def save_model(model, config):
 """ training/testing """
 
 
-def train(dataloader, model, loss_fn, optimizer, device):
+def train(dataloader: any, model: NeuralNetwork, loss_fn: any, optimizer: any,
+          device: str) -> None:
     size = len(dataloader.dataset)
 
     # switch to train mode
@@ -104,7 +105,7 @@ def train(dataloader, model, loss_fn, optimizer, device):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 
-def test(dataloader, model, loss_fn, device):
+def test(dataloader: any, model: NeuralNetwork, loss_fn: any, device: str) -> None:
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     test_loss, correct = 0, 0

@@ -10,7 +10,7 @@ from torchvision.transforms import ToTensor
 from neural_networks.intro_example_NN import NeuralNetwork
 
 
-def load_config():
+def load_config() -> dict:
     """ Import JSON file and check existence"""
     config_file = sys.argv[1]
     if os.path.exists(config_file):
@@ -24,7 +24,7 @@ def load_config():
     return config
 
 
-def setup_model(config):
+def setup_model(config: dict) -> (NeuralNetwork, str):
     """ Model """
     # Get cpu, gpu or mps device for training.
     best_available_device = (
@@ -35,7 +35,6 @@ def setup_model(config):
         else "cpu"
     )
     print(f"Using {best_available_device} device")
-
     model_filename = config["model_filename"]
     model = torch.load(model_filename)
     print(model)
@@ -43,7 +42,7 @@ def setup_model(config):
     return model, best_available_device
 
 
-def load_dataset():
+def load_dataset() -> any:
     """ Dataset """
     test_data = datasets.FashionMNIST(
         root="data",

@@ -266,3 +266,6 @@ plt.show()
 """ Save model """
 model_weights_filename = "models/ppo_example_model_weights_500k.pth"
 torch.save(policy_module.state_dict(), model_weights_filename)
+
+actor_net_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
+torch.save(actor_net.state_dict(), actor_net_weights_filename)

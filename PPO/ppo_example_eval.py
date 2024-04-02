@@ -46,8 +46,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 
 """ Environment """
 
-base_env = GymEnv("InvertedDoublePendulum-v4", device=device) #, render_mode="human")
-# gym_env = gym.make("InvertedDoublePendulum-v4", render_mode="human")
+base_env = GymEnv("InvertedDoublePendulum-v4", device=device)  # , render_mode="human")
 
 env = TransformedEnv(
     base_env,
@@ -66,10 +65,6 @@ print("\nobservation_spec:", env.observation_spec)
 print("\nreward_spec:", env.reward_spec)
 print("\ninput_spec:", env.input_spec)
 print("\naction_spec (as defined by input_spec):", env.action_spec)
-#
-# rollout = env.rollout(3)
-# print("\nrollout of three steps:", rollout)
-# print("\nShape of the rollout TensorDict:", rollout.batch_size)
 
 """ Policy """
 actor_net = nn.Sequential(
@@ -82,6 +77,10 @@ actor_net = nn.Sequential(
     nn.LazyLinear(2 * env.action_spec.shape[-1], device=device),
     NormalParamExtractor(),
 )
+# """ load model weights """
+# model_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
+# actor_net.load_state_dict(torch.load(model_weights_filename))
+
 
 policy_module = TensorDictModule(
     actor_net, in_keys=["observation"], out_keys=["loc", "scale"]
@@ -101,18 +100,13 @@ policy_module = ProbabilisticActor(
 )
 
 """ load policy """
-model_weights_filename = "models/ppo_example_model_weights_500k.pth"
+model_weights_filename = "models/ppo_example_model_weights_500k_baseline.pth"
 policy_module.load_state_dict(torch.load(model_weights_filename))
 
 """ Evaluate """
-
-# gym_env.reset()
-# action = gym_env.action_space.sample()  # this is where you would insert your policy
-# observation, reward, terminated, truncated, info = gym_env.step(0)
-# gym_env.render()
 for _ in range(10):
     eval_rollout = env.rollout(1000, policy_module)
     # print(eval_rollout)
-    print("reward: ",eval_rollout["next", "reward"].mean().item())
+    print("reward: ", eval_rollout["next", "reward"].mean().item())
     print("action: ", eval_rollout["action"].mean().item())
     print("step count: ", eval_rollout["step_count"].max().item())

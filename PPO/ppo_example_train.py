@@ -26,11 +26,6 @@ except RuntimeError:
     pass
 
 is_fork = multiprocessing.get_start_method() == "fork"
-# device = (
-#     torch.device(0)
-#     if torch.cuda.is_available() and not is_fork
-#     else torch.device("cpu")
-# )
 
 device = (
         "cuda"
@@ -50,7 +45,7 @@ max_grad_norm = 1.0
 """ Data collection parameters"""
 frames_per_batch = 1000
 # For a complete training, bring the number of frames up to 1M
-total_frames = 500_000
+total_frames = 300_000
 
 """ PPO parameters"""
 sub_batch_size = 64  # cardinality of the sub-samples gathered from the current data in the inner loop
@@ -180,6 +175,7 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
 logs = defaultdict(list)
 pbar = tqdm(total=total_frames)
 eval_str = ""
+torch.manual_seed(37)
 
 # We iterate over the collector until it reaches the total number of frames it was
 # designed to collect:
@@ -264,8 +260,9 @@ plt.show()
 
 
 """ Save model """
-model_weights_filename = "models/ppo_example_model_weights_500k.pth"
+model_weights_filename = "models/ppo_example_model_weights_300k.pth"
 torch.save(policy_module.state_dict(), model_weights_filename)
 
-actor_net_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
-torch.save(actor_net.state_dict(), actor_net_weights_filename)
+# policy includes actor_net
+# actor_net_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
+# torch.save(actor_net.state_dict(), actor_net_weights_filename)

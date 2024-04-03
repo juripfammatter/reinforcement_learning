@@ -24,11 +24,6 @@ import gymnasium as gym
 
 """ Device """
 is_fork = multiprocessing.get_start_method() == "fork"
-# device = (
-#     torch.device(0)
-#     if torch.cuda.is_available() and not is_fork
-#     else torch.device("cpu")
-# )
 
 device = (
     "cuda"
@@ -77,9 +72,6 @@ actor_net = nn.Sequential(
     nn.LazyLinear(2 * env.action_spec.shape[-1], device=device),
     NormalParamExtractor(),
 )
-# """ load model weights """
-# model_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
-# actor_net.load_state_dict(torch.load(model_weights_filename))
 
 
 policy_module = TensorDictModule(
@@ -100,13 +92,25 @@ policy_module = ProbabilisticActor(
 )
 
 """ load policy """
-model_weights_filename = "models/ppo_example_model_weights_500k_baseline.pth"
+model_weights_filename = "models/ppo_example_model_weights_300k.pth"
+# print(policy_module.state_dict())
+# print(actor_net.state_dict())
 policy_module.load_state_dict(torch.load(model_weights_filename))
+# print(policy_module.state_dict())
+# print(actor_net.state_dict())
+
 
 """ Evaluate """
-for _ in range(10):
-    eval_rollout = env.rollout(1000, policy_module)
-    # print(eval_rollout)
-    print("reward: ", eval_rollout["next", "reward"].mean().item())
-    print("action: ", eval_rollout["action"].mean().item())
-    print("step count: ", eval_rollout["step_count"].max().item())
+torch.manual_seed(37)
+
+actor_net.eval()
+policy_module.eval()
+with torch.no_grad():
+    for _ in range(10):
+        eval_rollout = env.rollout(1000, policy_module)
+        # print(eval_rollout)
+        print("reward: ", eval_rollout["next", "reward"].mean().item())
+        print("action: ", eval_rollout["action"].mean().item())
+        print("step count: ", eval_rollout["step_count"].max().item())
+
+        del eval_rollout

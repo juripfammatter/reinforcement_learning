@@ -3,8 +3,13 @@ from tensordict.nn import TensorDictModule
 from tensordict.nn.distributions import NormalParamExtractor
 from torch import multiprocessing
 from torch import nn
-from torchrl.envs import (Compose, DoubleToFloat, ObservationNorm, StepCounter,
-                          TransformedEnv)
+from torchrl.envs import (
+    Compose,
+    DoubleToFloat,
+    ObservationNorm,
+    StepCounter,
+    TransformedEnv,
+)
 from torchrl.envs.libs.gym import GymEnv
 from torchrl.modules import ProbabilisticActor, TanhNormal
 
@@ -80,7 +85,7 @@ policy_module = ProbabilisticActor(
 model_weights_filename = "models/ppo_example_model_weights_300k.pth"
 # print(policy_module.state_dict())
 # print(actor_net.state_dict())
-policy_module.load_state_dict(torch.load(model_weights_filename))
+policy_module.load_state_dict(torch.load(model_weights_filename, weights_only=True))
 # print(policy_module.state_dict())
 # print(actor_net.state_dict())
 

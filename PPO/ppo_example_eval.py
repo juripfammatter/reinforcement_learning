@@ -32,7 +32,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 
 """ Environment """
 
-base_env = GymEnv("InvertedDoublePendulum-v4", device=device, render_mode="human")
+base_env = GymEnv("InvertedDoublePendulum-v4", device=device) #, render_mode="human")
 
 env = TransformedEnv(
     base_env,
@@ -64,6 +64,10 @@ actor_net = nn.Sequential(
     NormalParamExtractor(),
 )
 
+# import actor net weights
+actor_net_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
+actor_net.load_state_dict(torch.load(actor_net_weights_filename))
+
 policy_module = TensorDictModule(
     actor_net, in_keys=["observation"], out_keys=["loc", "scale"]
 )
@@ -82,10 +86,10 @@ policy_module = ProbabilisticActor(
 )
 
 """ load policy """
-model_weights_filename = "models/ppo_example_model_weights_300k.pth"
+# model_weights_filename = "models/ppo_example_model_weights_300k.pth"
 # print(policy_module.state_dict())
 # print(actor_net.state_dict())
-policy_module.load_state_dict(torch.load(model_weights_filename, weights_only=True))
+# policy_module.load_state_dict(torch.load(model_weights_filename, weights_only=True))
 # print(policy_module.state_dict())
 # print(actor_net.state_dict())
 

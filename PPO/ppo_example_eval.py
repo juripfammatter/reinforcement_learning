@@ -32,7 +32,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 
 """ Environment """
 
-base_env = GymEnv("InvertedDoublePendulum-v4", device=device) #, render_mode="human")
+base_env = GymEnv("InvertedDoublePendulum-v4", device=device, render_mode="human")
 
 env = TransformedEnv(
     base_env,
@@ -44,13 +44,14 @@ env = TransformedEnv(
     ),
 )
 
-env.transform[0].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
+# initialize stats -> random motion in render
+env.transform[0].init_stats(num_iter=100, reduce_dim=0, cat_dim=0)
 
-print("normalization constant shape:", env.transform[0].loc.shape)
-print("\nobservation_spec:", env.observation_spec)
-print("\nreward_spec:", env.reward_spec)
-print("\ninput_spec:", env.input_spec)
-print("\naction_spec (as defined by input_spec):", env.action_spec)
+# print("normalization constant shape:", env.transform[0].loc.shape)
+# print("\nobservation_spec:", env.observation_spec)
+# print("\nreward_spec:", env.reward_spec)
+# print("\ninput_spec:", env.input_spec)
+# print("\naction_spec (as defined by input_spec):", env.action_spec)
 
 """ Policy """
 actor_net = nn.Sequential(
@@ -65,8 +66,11 @@ actor_net = nn.Sequential(
 )
 
 # import actor net weights
-actor_net_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
-actor_net.load_state_dict(torch.load(actor_net_weights_filename))
+total_frames = 1_000_000
+actor_net_weights_filename = f"models/ppo_example_model_weights_{total_frames//1000}k_actor_net.pth"
+print(f"Loading weights from {actor_net_weights_filename}")
+actor_net.load_state_dict(torch.load(actor_net_weights_filename, weights_only=True))
+actor_net.eval()
 
 policy_module = TensorDictModule(
     actor_net, in_keys=["observation"], out_keys=["loc", "scale"]
@@ -100,7 +104,7 @@ torch.manual_seed(37)
 actor_net.eval()
 policy_module.eval()
 with torch.no_grad():
-    for _ in range(10):
+    for _ in range(3):
         eval_rollout = env.rollout(1000, policy_module)
         # print(eval_rollout)
         print("reward: ", eval_rollout["next", "reward"].mean().item())

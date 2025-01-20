@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 from torch import multiprocessing
 import warnings
@@ -45,7 +46,7 @@ max_grad_norm = 1.0
 """ Data collection parameters"""
 frames_per_batch = 1000
 # For a complete training, bring the number of frames up to 1M
-total_frames = 300_000
+total_frames =1_000_000
 
 """ PPO parameters"""
 sub_batch_size = 64  # cardinality of the sub-samples gathered from the current data in the inner loop
@@ -264,5 +265,6 @@ plt.show()
 # torch.save(policy_module.state_dict(), model_weights_filename)
 
 # policy includes actor_net
-actor_net_weights_filename = "models/ppo_example_model_weights_500k_actor_net.pth"
+os.makedirs("models", exist_ok=True)
+actor_net_weights_filename = f"models/ppo_example_model_weights_{total_frames//1000}k_actor_net.pth"
 torch.save(actor_net.state_dict(), actor_net_weights_filename)

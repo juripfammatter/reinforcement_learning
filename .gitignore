@@ -5,7 +5,12 @@ __pycache__
 .idea
 .venv
 
+# data folders
+DQN/1400
+
 # saved datasets
 */data
 */models
 *.pth
+*.pb
+*.npy

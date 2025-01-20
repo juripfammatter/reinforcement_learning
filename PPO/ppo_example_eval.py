@@ -32,7 +32,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 
 """ Environment """
 
-base_env = GymEnv("InvertedDoublePendulum-v4", device=device)  # , render_mode="human")
+base_env = GymEnv("InvertedDoublePendulum-v4", device=device, render_mode="human")
 
 env = TransformedEnv(
     base_env,

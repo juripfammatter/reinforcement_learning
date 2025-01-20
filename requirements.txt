@@ -4,8 +4,8 @@ torchaudio
 torchrl~=0.5.0
 tensordict~=0.5.0
 tqdm~=4.67.1
-mujoco
-gym[mujoco]~=0.26.2
+gymnasium~=1.0.0
+mujoco~=3.2.7
 imageio~=2.33.1
 
 matplotlib~=3.10.0

@@ -11,6 +11,7 @@ from torchrl.envs import (
     TransformedEnv,
 )
 from torchrl.envs.libs.gym import GymEnv
+from torchrl.envs.utils import check_env_specs, ExplorationType, set_exploration_type
 from torchrl.modules import ProbabilisticActor, TanhNormal
 
 """ Device """
@@ -32,7 +33,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 
 """ Environment """
 
-base_env = GymEnv("InvertedDoublePendulum-v4", device=device, render_mode="human")
+base_env = GymEnv("InvertedDoublePendulum-v4", device=device) #, render_mode="human")
 
 env = TransformedEnv(
     base_env,
@@ -45,7 +46,7 @@ env = TransformedEnv(
 )
 
 # initialize stats -> random motion in render
-env.transform[0].init_stats(num_iter=100, reduce_dim=0, cat_dim=0)
+env.transform[0].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
 
 # print("normalization constant shape:", env.transform[0].loc.shape)
 # print("\nobservation_spec:", env.observation_spec)
@@ -65,13 +66,6 @@ actor_net = nn.Sequential(
     NormalParamExtractor(),
 )
 
-# import actor net weights
-total_frames = 1_000_000
-actor_net_weights_filename = f"models/ppo_example_model_weights_{total_frames//1000}k_actor_net.pth"
-print(f"Loading weights from {actor_net_weights_filename}")
-actor_net.load_state_dict(torch.load(actor_net_weights_filename, weights_only=True))
-actor_net.eval()
-
 policy_module = TensorDictModule(
     actor_net, in_keys=["observation"], out_keys=["loc", "scale"]
 )
@@ -90,25 +84,24 @@ policy_module = ProbabilisticActor(
 )
 
 """ load policy """
-# model_weights_filename = "models/ppo_example_model_weights_300k.pth"
-# print(policy_module.state_dict())
-# print(actor_net.state_dict())
-# policy_module.load_state_dict(torch.load(model_weights_filename, weights_only=True))
-# print(policy_module.state_dict())
-# print(actor_net.state_dict())
-
+total_frames = 100_000
+model_weights_filename = f"models/ppo_example_model_weights_{total_frames//1000}k.pth"
+policy_module.load_state_dict(torch.load(model_weights_filename, weights_only=True))
 
 """ Evaluate """
 torch.manual_seed(37)
+env.set_seed(37)
 
-actor_net.eval()
 policy_module.eval()
-with torch.no_grad():
-    for _ in range(3):
+for _ in range(3):
+    with set_exploration_type(ExplorationType.DETERMINISTIC), torch.no_grad():
+        env.reset()
         eval_rollout = env.rollout(1000, policy_module)
+        # base_env.render("human")
         # print(eval_rollout)
         print("reward: ", eval_rollout["next", "reward"].mean().item())
         print("action: ", eval_rollout["action"].mean().item())
         print("step count: ", eval_rollout["step_count"].max().item())
 
         del eval_rollout
+

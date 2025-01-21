@@ -1,9 +1,7 @@
 import os
 from collections import defaultdict
-from multiprocessing import freeze_support
 
 from torch import multiprocessing
-import warnings
 
 import matplotlib.pyplot as plt
 import torch
@@ -17,7 +15,7 @@ from torchrl.data.replay_buffers.storages import LazyTensorStorage
 from torchrl.envs import (Compose, DoubleToFloat, ObservationNorm, StepCounter,
                           TransformedEnv, ParallelEnv)
 from torchrl.envs.libs.gym import GymEnv
-from torchrl.envs.utils import check_env_specs, ExplorationType, set_exploration_type
+from torchrl.envs.utils import ExplorationType, set_exploration_type
 from torchrl.modules import ProbabilisticActor, TanhNormal, ValueOperator
 from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
@@ -120,8 +118,8 @@ def main():
         in_keys=["loc", "scale"],
         distribution_class=TanhNormal,
         distribution_kwargs={
-            "min": env.action_spec.space.low,
-            "max": env.action_spec.space.high,
+            "low": env.action_spec.space.low,
+            "high": env.action_spec.space.high,
         },
         return_log_prob=True,
         # we'll need the log-prob for the numerator of the importance weights

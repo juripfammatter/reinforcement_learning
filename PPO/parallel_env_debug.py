@@ -56,15 +56,17 @@ def main():
 
         return env
 
-    env = ParallelEnv(3, make_env)
+    env = ParallelEnv(4, make_env)
     env.reset()
 
-    print("normalization constant shape:", env.transform[0].loc.shape)
+    # print("normalization constant shape:", env.transform[0].loc.shape)
 
-    n = 10
+    n = 100
     rollout = env.rollout(n)
+
     print(f"\nrollout of {n} steps:", rollout)
     print("\nShape of the rollout TensorDict:", rollout.batch_size)
+    print("\nMax steps:", rollout["step_count"].max().item())
 
 if __name__ == '__main__':
     main()

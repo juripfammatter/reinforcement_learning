@@ -11,7 +11,7 @@ from torchrl.envs import (
     TransformedEnv,
 )
 from torchrl.envs.libs.gym import GymEnv
-from torchrl.envs.utils import check_env_specs, ExplorationType, set_exploration_type
+from torchrl.envs.utils import ExplorationType, set_exploration_type
 from torchrl.modules import ProbabilisticActor, TanhNormal
 
 """ Device """
@@ -33,7 +33,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 
 """ Environment """
 
-base_env = GymEnv("InvertedDoublePendulum-v4", device=device) #, render_mode="human")
+base_env = GymEnv("InvertedDoublePendulum-v4", device=device)#, render_mode="human")
 
 env = TransformedEnv(
     base_env,
@@ -76,15 +76,14 @@ policy_module = ProbabilisticActor(
     in_keys=["loc", "scale"],
     distribution_class=TanhNormal,
     distribution_kwargs={
-        "min": env.action_spec.space.low,
-        "max": env.action_spec.space.high,
+        "low": env.action_spec.space.low,
+        "high": env.action_spec.space.high,
     },
     return_log_prob=True,
-    # we'll need the log-prob for the numerator of the importance weights
 )
 
 """ load policy """
-total_frames = 100_000
+total_frames = 1_000_000
 model_weights_filename = f"models/ppo_example_model_weights_{total_frames//1000}k.pth"
 policy_module.load_state_dict(torch.load(model_weights_filename, weights_only=True))
 
@@ -97,8 +96,6 @@ for _ in range(3):
     with set_exploration_type(ExplorationType.DETERMINISTIC), torch.no_grad():
         env.reset()
         eval_rollout = env.rollout(1000, policy_module)
-        # base_env.render("human")
-        # print(eval_rollout)
         print("reward: ", eval_rollout["next", "reward"].mean().item())
         print("action: ", eval_rollout["action"].mean().item())
         print("step count: ", eval_rollout["step_count"].max().item())

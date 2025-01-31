@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+import time
 
 import torch
 from torch import nn
@@ -11,7 +12,7 @@ from neural_networks.intro_example_NN import NeuralNetwork
 
 
 def load_config() -> dict:
-    """ Import JSON file and check existence"""
+    """Import JSON file and check existence"""
     config_file = sys.argv[1]
     if os.path.exists(config_file):
         print(f"Using {config_file} as config file")
@@ -19,13 +20,15 @@ def load_config() -> dict:
     with open(config_file, "r") as file:
         config = json.load(file)
 
-    print(f"Config file loaded: {config_file} with config:\n{json.dumps(config, indent=4)}")
+    print(
+        f"Config file loaded: {config_file} with config:\n{json.dumps(config, indent=4)}"
+    )
 
     return config
 
 
 def load_dataset(config: dict) -> (any, any):
-    """ Dataset """
+    """Dataset"""
     training_data = datasets.FashionMNIST(
         root="data",
         train=True,
@@ -55,14 +58,12 @@ def load_dataset(config: dict) -> (any, any):
 
 
 def setup_model() -> (NeuralNetwork, str):
-    """ Model """
+    """Model"""
     # Get cpu, gpu or mps device for training.
     best_available_device = (
         "cuda"
         if torch.cuda.is_available()
-        else "mps"
-        if torch.backends.mps.is_available()
-        else "cpu"
+        else "mps" if torch.backends.mps.is_available() else "cpu"
     )
     print(f"Using {best_available_device} device")
 
@@ -81,8 +82,9 @@ def save_model(model: NeuralNetwork, config: dict) -> None:
 """ training/testing """
 
 
-def train(dataloader: any, model: NeuralNetwork, loss_fn: any, optimizer: any,
-          device: str) -> None:
+def train(
+    dataloader: any, model: NeuralNetwork, loss_fn: any, optimizer: any, device: str
+) -> None:
     size = len(dataloader.dataset)
 
     # switch to train mode
@@ -121,7 +123,9 @@ def test(dataloader: any, model: NeuralNetwork, loss_fn: any, device: str) -> No
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
-    print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    print(
+        f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
+    )
 
 
 """ Running the training and test loops """
@@ -136,11 +140,12 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
     epochs = config["hyperparameters"]["epochs"]
+    start_time = time.time()
     for t in range(epochs):
         print(f"Epoch {t + 1}/{epochs}\n-------------------------------")
         train(train_dataloader, model, loss_fn, optimizer, device)
         test(test_dataloader, model, loss_fn, device)
-    print("Done!")
+    print(f"Done in {time.time() - start_time: .2f} seconds")
 
     """ Save model"""
     save_model(model, config)

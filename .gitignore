@@ -14,3 +14,4 @@ DQN/1400
 *.pth
 *.pb
 *.npy
+/pytorch/models/

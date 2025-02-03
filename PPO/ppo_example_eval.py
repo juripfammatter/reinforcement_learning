@@ -17,13 +17,14 @@ from torchrl.modules import ProbabilisticActor, TanhNormal
 """ Device """
 is_fork = multiprocessing.get_start_method() == "fork"
 
-device = (
-    "cuda"
-    if torch.cuda.is_available() and not is_fork
-    # else "mps"
-    # if torch.backends.mps.is_available() and not is_fork
-    else "cpu"
-)
+# device = (
+#     "cuda"
+#     if torch.cuda.is_available() and not is_fork
+#     # else "mps"
+#     # if torch.backends.mps.is_available() and not is_fork
+#     else "cpu"
+# )
+device = "cpu"
 
 print(f"Using device: {device}")
 
@@ -33,7 +34,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 
 """ Environment """
 
-base_env = GymEnv("InvertedDoublePendulum-v4", device=device)#, render_mode="human")
+base_env = GymEnv("InvertedDoublePendulum-v4", device=device, render_mode="human")
 
 env = TransformedEnv(
     base_env,
@@ -101,4 +102,3 @@ for _ in range(3):
         print("step count: ", eval_rollout["step_count"].max().item())
 
         del eval_rollout
-

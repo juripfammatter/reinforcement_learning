@@ -12,8 +12,14 @@ from torchrl.collectors import SyncDataCollector
 from torchrl.data.replay_buffers import ReplayBuffer
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 from torchrl.data.replay_buffers.storages import LazyTensorStorage
-from torchrl.envs import (Compose, DoubleToFloat, ObservationNorm, StepCounter,
-                          TransformedEnv, ParallelEnv)
+from torchrl.envs import (
+    Compose,
+    DoubleToFloat,
+    ObservationNorm,
+    StepCounter,
+    TransformedEnv,
+    ParallelEnv,
+)
 from torchrl.envs.libs.gym import GymEnv
 from torchrl.envs.utils import ExplorationType, set_exploration_type
 from torchrl.modules import ProbabilisticActor, TanhNormal, ValueOperator
@@ -30,13 +36,14 @@ def main():
 
     is_fork = multiprocessing.get_start_method() == "fork"
 
-    device = (
-            "cuda"
-            if torch.cuda.is_available() and not is_fork
-            # else "mps"
-            # if torch.backends.mps.is_available() and not is_fork
-            else "cpu"
-        )
+    # device = (
+    #     "cuda"
+    #     if torch.cuda.is_available() and not is_fork
+    #     # else "mps"
+    #     # if torch.backends.mps.is_available() and not is_fork
+    #     else "cpu"
+    # )
+    device = "cpu"
 
     print(f"Using device: {device}")
 
@@ -48,7 +55,7 @@ def main():
     """ Data collection parameters"""
     frames_per_batch = 1000
     # For a complete training, bring the number of frames up to 1M
-    total_frames =1_000_000
+    total_frames = 1_000_000
 
     """ PPO parameters"""
     sub_batch_size = 64  # cardinality of the sub-samples gathered from the current data in the inner loop
@@ -81,10 +88,12 @@ def main():
 
     threads = 8
     workers = 32
-    env = ParallelEnv(num_workers=workers,
-                      num_threads = threads,
-                      num_sub_threads = threads - 1,
-                      create_env_fn=make_env)
+    env = ParallelEnv(
+        num_workers=workers,
+        num_threads=threads,
+        num_sub_threads=threads - 1,
+        create_env_fn=make_env,
+    )
 
     # print("normalization constant shape:", env.transform[0].loc.shape)
     print("\nobservation_spec:", env.observation_spec)
@@ -221,9 +230,7 @@ def main():
 
         logs["reward"].append(tensordict_data["next", "reward"].mean().item())
         pbar.update(tensordict_data.numel())
-        cum_reward_str = (
-            f"average reward={logs['reward'][-1]: 4.4f} (init={logs['reward'][0]: 4.4f})"
-        )
+        cum_reward_str = f"average reward={logs['reward'][-1]: 4.4f} (init={logs['reward'][0]: 4.4f})"
         logs["step_count"].append(tensordict_data["step_count"].max().item())
         stepcount_str = f"step count (max): {logs['step_count'][-1]}"
         logs["lr"].append(optim.param_groups[0]["lr"])
@@ -249,7 +256,9 @@ def main():
                     f"eval step-count: {logs['eval step_count'][-1]}"
                 )
                 del eval_rollout
-        pbar.set_description(", ".join([eval_str, cum_reward_str, stepcount_str, lr_str]))
+        pbar.set_description(
+            ", ".join([eval_str, cum_reward_str, stepcount_str, lr_str])
+        )
 
         # We're also using a learning rate scheduler. Like the gradient clipping,
         # this is a nice-to-have but nothing necessary for PPO to work.
@@ -272,12 +281,14 @@ def main():
     plt.title("Max step count (test)")
     plt.show()
 
-
     """ Save model """
     os.makedirs("models", exist_ok=True)
 
-    model_weights_filename = f"models/ppo_example_model_weights_{total_frames//1000}k.pth"
+    model_weights_filename = (
+        f"models/ppo_example_model_weights_{total_frames//1000}k.pth"
+    )
     torch.save(policy_module.state_dict(), model_weights_filename)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

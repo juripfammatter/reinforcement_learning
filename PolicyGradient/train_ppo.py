@@ -1,11 +1,20 @@
 import os
-from collections import defaultdict
+import json
+import sys
 
-from torch import multiprocessing
-
-import matplotlib.pyplot as plt
 import torch
+from torch import multiprocessing
 from PGModels.PPO import PPO
+
+
+def parse_config(config_file: str) -> dict:
+    """Import JSON file and check existence"""
+    if os.path.exists(config_file):
+        print(f"Using {config_file} as config file")
+
+    with open(config_file, "r") as file:
+        config = json.load(file)
+    return config
 
 
 def main():
@@ -25,19 +34,8 @@ def main():
     )
 
     print(f"Using device: {device}")
-    hyperparameters = {
-        "num_cells": 256,  # general
-        "lr": 3e-4,  # optimizer
-        "max_grad_norm": 1.0,  # optimizer
-        "gamma": 0.99,  # advantage
-        "lmbda": 0.95,  # advantage
-        "entropy_eps": 0.01,  # PPO loss
-        "clip_epsilon": 0.2,  # PPO loss
-        "sub_batch_size": 64,  # replay buffer
-        "num_epochs": 10,  # replay buffer
-        "frames_per_batch": 1024,  # data collector
-        "total_frames": 1024 * 150,  # data collector
-    }
+
+    hyperparameters = parse_config(sys.argv[1])
     agent = PPO(hyperparameters, device)
     agent.train()
 

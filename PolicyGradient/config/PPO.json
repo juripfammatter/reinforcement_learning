@@ -1,13 +1,13 @@
 {
-        "num_cells": 256,
+        "num_cells": 64,
         "lr": 3e-4,
         "max_grad_norm": 1.0,
         "gamma": 0.99,
         "lmbda": 0.95,
         "entropy_eps": 0.01,
         "clip_epsilon": 0.2,
-        "sub_batch_size": 64,
+        "sub_batch_size": 8,
         "num_epochs": 10,
         "frames_per_batch": 1024,
-        "total_frames": 153600
+        "total_frames": 112640
     }

@@ -57,6 +57,14 @@ class PPO(object):
         print("\nPolicy Net:", self.policy_module(self.env.reset()))
         print("\nValue Net:", self.value_function(self.env.reset()))
 
+        def init_weights(m):
+            if isinstance(m, nn.Linear):
+                torch.nn.init.orthogonal(m.weight)
+                m.bias.data.fill_(0.01)
+
+        self.policy_module.apply(init_weights)
+        self.value_function.apply(init_weights)
+
         self.data_collector = self._get_data_collector()
         self.replay_buffer = self._get_replay_buffer()
         self.advantage_module = self._get_advantage_module()
@@ -89,10 +97,10 @@ class PPO(object):
         actor_net = nn.Sequential(
             nn.LazyLinear(self.hp["num_cells"], device=self.device),
             nn.Tanh(),
-            nn.LazyLinear(self.hp["num_cells"], device=self.device),
-            nn.Tanh(),
-            nn.LazyLinear(self.hp["num_cells"], device=self.device),
-            nn.Tanh(),
+            # nn.LazyLinear(self.hp["num_cells"], device=self.device),
+            # nn.Tanh(),
+            # nn.LazyLinear(self.hp["num_cells"], device=self.device),
+            # nn.Tanh(),
             nn.LazyLinear(2 * self.env.action_spec.shape[-1], device=self.device),
             NormalParamExtractor(),
         )
@@ -113,16 +121,17 @@ class PPO(object):
             return_log_prob=True,
             # we'll need the log-prob for the numerator of the importance weights
         )
+
         return policy_module
 
     def _get_value_function(self) -> ValueOperator:
         value_net = nn.Sequential(
             nn.LazyLinear(self.hp["num_cells"], device=self.device),
             nn.Tanh(),
-            nn.LazyLinear(self.hp["num_cells"], device=self.device),
-            nn.Tanh(),
-            nn.LazyLinear(self.hp["num_cells"], device=self.device),
-            nn.Tanh(),
+            # nn.LazyLinear(self.hp["num_cells"], device=self.device),
+            # nn.Tanh(),
+            # nn.LazyLinear(self.hp["num_cells"], device=self.device),
+            # nn.Tanh(),
             nn.LazyLinear(1, device=self.device),
         )
 
